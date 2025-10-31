@@ -256,17 +256,52 @@ create_manual_dataframe <- function(start_year, end_year, current_year) {
   # Add data type classification
   df <- df %>%
     mutate(
-      Data_Type = ifelse(Year <= current_year - 1, "Historical", "Forecast"),
-
-      # Create projections field
-      Projections_from_IMF = ifelse(
-        Data_Type == "Forecast",
-        paste0("GDP: ", round(gdp_time, 2), "%; ",
-               "INF: ", round(inf_time, 2), "%; ",
-               "UNEMP: ", round(unemp_time, 2), "%"),
-        NA_character_
-      )
+      Data_Type = ifelse(Year <= current_year - 1, "Historical", "Forecast")
     )
+
+  # Create projections field - showing what was projected for this year from previous year
+  df$Projections_from_IMF <- NA_character_
+
+  for(i in 2:nrow(df)) {
+    # Get projection from previous year
+    prev_year <- df$Year[i-1]
+    curr_year <- df$Year[i]
+
+    # For each year, store what was "projected" for it from the previous year
+    # This simulates IMF projections made one year ahead
+    if(df$Data_Type[i-1] == "Historical" && df$Data_Type[i] == "Historical") {
+      # Both historical - no projection stored
+      df$Projections_from_IMF[i] <- NA_character_
+    } else {
+      # Create projection string from previous year's trend
+      # Using previous year as base for projection
+      gdp_proj <- df$gdp_time[i-1] * 0.95  # Slight convergence
+      inf_proj <- df$inf_time[i-1] * 0.98
+      unemp_proj <- df$unemp_time[i-1] * 1.02
+      exch_proj <- df$exchange_time[i-1] * 1.01
+
+      df$Projections_from_IMF[i] <- paste0(
+        "Projected_from_", prev_year, ": ",
+        "GDP=", round(gdp_proj, 1), "%; ",
+        "INF=", round(inf_proj, 1), "%; ",
+        "UNEMP=", round(unemp_proj, 1), "%; ",
+        "EXCH=", round(exch_proj, 1), " KGS/USD"
+      )
+    }
+  }
+
+  # For the first year and pure historical years, just show actual data
+  for(i in 1:nrow(df)) {
+    if(is.na(df$Projections_from_IMF[i]) || df$Projections_from_IMF[i] == "") {
+      df$Projections_from_IMF[i] <- paste0(
+        "Actual_", df$Year[i], ": ",
+        "GDP=", round(df$gdp_time[i], 1), "%; ",
+        "INF=", round(df$inf_time[i], 1), "%; ",
+        "UNEMP=", round(df$unemp_time[i], 1), "%; ",
+        "EXCH=", round(df$exchange_time[i], 1), " KGS/USD"
+      )
+    }
+  }
 
   return(df)
 }
