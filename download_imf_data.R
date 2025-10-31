@@ -260,6 +260,7 @@ create_manual_dataframe <- function(start_year, end_year, current_year) {
     )
 
   # Create projections field - showing what was projected for this year from previous year
+  # Only showing GDP data
   df$Projections_from_IMF <- NA_character_
 
   for(i in 2:nrow(df)) {
@@ -276,16 +277,10 @@ create_manual_dataframe <- function(start_year, end_year, current_year) {
       # Create projection string from previous year's trend
       # Using previous year as base for projection
       gdp_proj <- df$gdp_time[i-1] * 0.95  # Slight convergence
-      inf_proj <- df$inf_time[i-1] * 0.98
-      unemp_proj <- df$unemp_time[i-1] * 1.02
-      exch_proj <- df$exchange_time[i-1] * 1.01
 
       df$Projections_from_IMF[i] <- paste0(
         "Projected_from_", prev_year, ": ",
-        "GDP=", round(gdp_proj, 1), "%; ",
-        "INF=", round(inf_proj, 1), "%; ",
-        "UNEMP=", round(unemp_proj, 1), "%; ",
-        "EXCH=", round(exch_proj, 1), " KGS/USD"
+        "GDP=", round(gdp_proj, 1), "%"
       )
     }
   }
@@ -295,10 +290,7 @@ create_manual_dataframe <- function(start_year, end_year, current_year) {
     if(is.na(df$Projections_from_IMF[i]) || df$Projections_from_IMF[i] == "") {
       df$Projections_from_IMF[i] <- paste0(
         "Actual_", df$Year[i], ": ",
-        "GDP=", round(df$gdp_time[i], 1), "%; ",
-        "INF=", round(df$inf_time[i], 1), "%; ",
-        "UNEMP=", round(df$unemp_time[i], 1), "%; ",
-        "EXCH=", round(df$exchange_time[i], 1), " KGS/USD"
+        "GDP=", round(df$gdp_time[i], 1), "%"
       )
     }
   }
