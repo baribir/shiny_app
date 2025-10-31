@@ -260,39 +260,21 @@ create_manual_dataframe <- function(start_year, end_year, current_year) {
     )
 
   # Create projections field - showing what was projected for this year from previous year
-  # Only showing GDP data
-  df$Projections_from_IMF <- NA_character_
+  # Only showing GDP data as numeric value
+  df$Projections_from_IMF <- NA_real_
 
   for(i in 2:nrow(df)) {
-    # Get projection from previous year
-    prev_year <- df$Year[i-1]
-    curr_year <- df$Year[i]
-
     # For each year, store what was "projected" for it from the previous year
     # This simulates IMF projections made one year ahead
-    if(df$Data_Type[i-1] == "Historical" && df$Data_Type[i] == "Historical") {
-      # Both historical - no projection stored
-      df$Projections_from_IMF[i] <- NA_character_
-    } else {
-      # Create projection string from previous year's trend
-      # Using previous year as base for projection
-      gdp_proj <- df$gdp_time[i-1] * 0.95  # Slight convergence
 
-      df$Projections_from_IMF[i] <- paste0(
-        "Projected_from_", prev_year, ": ",
-        "GDP=", round(gdp_proj, 1), "%"
-      )
-    }
+    # Calculate projection based on previous year's trend
+    gdp_proj <- df$gdp_time[i-1] * 0.95  # Slight convergence
+    df$Projections_from_IMF[i] <- round(gdp_proj, 1)
   }
 
-  # For the first year and pure historical years, just show actual data
-  for(i in 1:nrow(df)) {
-    if(is.na(df$Projections_from_IMF[i]) || df$Projections_from_IMF[i] == "") {
-      df$Projections_from_IMF[i] <- paste0(
-        "Actual_", df$Year[i], ": ",
-        "GDP=", round(df$gdp_time[i], 1), "%"
-      )
-    }
+  # For the first year, use actual value
+  if(nrow(df) > 0) {
+    df$Projections_from_IMF[1] <- df$gdp_time[1]
   }
 
   return(df)
